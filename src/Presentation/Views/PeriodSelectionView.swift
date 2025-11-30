@@ -1,4 +1,3 @@
-#if canImport(SwiftUI)
 import SwiftUI
 
 struct PeriodSelectionView: View {
@@ -30,4 +29,3 @@ struct PeriodSelectionView: View {
         .padding(.vertical)
     }
 }
-#endif

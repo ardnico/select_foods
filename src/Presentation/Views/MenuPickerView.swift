@@ -1,4 +1,3 @@
-#if canImport(SwiftUI)
 import SwiftUI
 
 struct MenuPickerView: View {
@@ -46,4 +45,3 @@ struct MenuPickerView: View {
         }
     }
 }
-#endif

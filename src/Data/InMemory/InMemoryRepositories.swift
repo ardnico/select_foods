@@ -1,7 +1,5 @@
 import Foundation
-#if canImport(Combine)
 import Combine
-#endif
 
 public final class InMemoryPlanRepository: PlanRepository {
     private var plan: Plan
@@ -23,24 +21,19 @@ public final class InMemoryPlanRepository: PlanRepository {
     }
 
     public func loadPlan(startDate: Date, endDate: Date) -> AnyPublisher<Plan, Never> {
-        guard startDate != plan.startDate || endDate != plan.endDate else {
-            return Just(plan).eraseToAnyPublisher()
+        if startDate != plan.startDate || endDate != plan.endDate {
+            let updatedDays = Self.makeDays(start: startDate, end: endDate).map { day in
+                if let existing = plan.days.first(where: { Calendar.current.isDate($0.date, inSameDayAs: day.date) }) {
+                    return existing
+                }
+                return day
+            }
+
+            plan.startDate = startDate
+            plan.endDate = endDate
+            plan.days = updatedDays
         }
 
-        let calendar = Calendar.current
-        let existingByDay: [Date: PlanDay] = plan.days.reduce(into: [:]) { result, day in
-            let key = calendar.startOfDay(for: day.date)
-            result[key] = day
-        }
-
-        let rebuiltDays = Self.makeDays(start: startDate, end: endDate).map { template in
-            let key = calendar.startOfDay(for: template.date)
-            return existingByDay[key] ?? template
-        }
-
-        plan.startDate = startDate
-        plan.endDate = endDate
-        plan.days = rebuiltDays
         return Just(plan).eraseToAnyPublisher()
     }
 

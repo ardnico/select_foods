@@ -1,4 +1,3 @@
-#if canImport(SwiftUI)
 import SwiftUI
 
 struct IngredientSummaryView: View {
@@ -18,4 +17,3 @@ struct IngredientSummaryView: View {
         }
     }
 }
-#endif

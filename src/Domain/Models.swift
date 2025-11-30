@@ -28,7 +28,7 @@ public struct MenuIngredient: Codable, Hashable {
     }
 }
 
-public enum MenuType: Codable, Hashable {
+public enum MenuType: Codable, Hashable, CaseIterable {
     case japanese
     case western
     case chinese

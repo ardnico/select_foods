@@ -1,7 +1,5 @@
 import Foundation
-#if canImport(Combine)
 import Combine
-#endif
 
 public final class PlanStore: ObservableObject {
     @Published public private(set) var plan: Plan

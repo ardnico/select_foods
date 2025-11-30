@@ -1,4 +1,3 @@
-#if canImport(SwiftUI)
 import SwiftUI
 
 @main
@@ -12,4 +11,3 @@ struct SelectFoodsApp: App {
         }
     }
 }
-#endif
