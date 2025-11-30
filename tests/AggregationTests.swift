@@ -29,4 +29,52 @@ final class AggregationTests: XCTestCase {
         XCTAssertEqual(chickenTotal?.totalQuantity, 450)
         XCTAssertEqual(soyTotal?.totalQuantity, 40)
     }
+
+    func testUpdateRebuildsPlanDaysAndDropsOutOfRangeAssignments() {
+        let calendar = Calendar(identifier: .gregorian)
+        let start = calendar.date(from: DateComponents(year: 2025, month: 1, day: 1))!
+        let end = calendar.date(byAdding: .day, value: 6, to: start)!
+        let shortenedEnd = calendar.date(byAdding: .day, value: 2, to: start)!
+
+        let planRepo = InMemoryPlanRepository(startDate: start, endDate: end)
+        let menuRepo = InMemoryMenuRepository()
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        store.update(dateRange: start...end)
+        XCTAssertEqual(store.plan.days.count, 7)
+
+        let menu = Menu.sampleMenus[0]
+        store.assign(menu: menu, to: start, slot: .lunch)
+        XCTAssertEqual(store.plan.days.first?.lunch?.id, menu.id)
+
+        store.update(dateRange: start...shortenedEnd)
+        XCTAssertEqual(store.plan.days.count, 3)
+        XCTAssertTrue(store.plan.days.allSatisfy { $0.lunch == nil && $0.dinner == nil })
+    }
+
+    func testIngredientTotalsSkipInvalidEntries() {
+        let invalidIngredient = Ingredient(name: "   ", unit: " ml ")
+        let zeroQuantity = MenuIngredient(ingredient: Ingredient(name: "醤油", unit: "ml"), quantity: 0)
+        let negativeQuantity = MenuIngredient(ingredient: Ingredient(name: "キャベツ", unit: "g"), quantity: -1)
+        let validIngredient = MenuIngredient(ingredient: Ingredient(name: "キャベツ", unit: "g"), quantity: 100)
+
+        let menu = Menu(name: "テスト", type: .japanese, ingredients: [
+            MenuIngredient(ingredient: invalidIngredient, quantity: 10),
+            zeroQuantity,
+            negativeQuantity,
+            validIngredient
+        ])
+
+        let planRepo = InMemoryPlanRepository(startDate: Date(), endDate: Date())
+        let menuRepo = InMemoryMenuRepository(seed: [menu])
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        let today = Calendar.current.startOfDay(for: Date())
+        store.assign(menu: menu, to: today, slot: .lunch)
+
+        let totals = store.ingredientTotals()
+        XCTAssertEqual(totals.count, 1)
+        XCTAssertEqual(totals.first?.ingredient.name, "キャベツ")
+        XCTAssertEqual(totals.first?.totalQuantity, 100)
+    }
 }
