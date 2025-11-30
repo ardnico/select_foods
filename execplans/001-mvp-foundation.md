@@ -19,6 +19,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-11-30 09:20Z) Added unit test covering date-range rebuild and reassignment reset when shrinking the planning window.
 - [x] (2025-11-30 09:35Z) Added MenuStore tests for filter behavior and menu validation to cover UI-critical flows without simulator access.
 - [x] (2025-11-30 09:50Z) Added PlanStore aggregation test to ensure invalid or zero-quantity ingredients are ignored when summing totals.
+- [x] (2025-11-30 10:05Z) Fixed plan rebuild to preserve in-range assignments while dropping out-of-range ones and added regression test.
 - [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
@@ -30,6 +31,8 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
   Evidence: `swift test` now passes in the container with aggregation test succeeding (2025-11-30).
 - Observation: Validation now filters out empty ingredient names/units and non-positive quantities before persistence, so manual testing must include invalid input attempts on simulator.
   Evidence: MenuStore guards on `Menu.isValid` and `MenuIngredient.isValid` and ignores invalid saves.
+- Observation: Plan rebuild previously wiped all assignments on any date-range change, even those still in range; preserving in-range slots prevents accidental data loss when shrinking windows.
+  Evidence: Added regression test showing a shrink keeps assignments on overlapping days while dropping out-of-range ones (2025-11-30).
 
 ## Decision Log
 
@@ -39,6 +42,9 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Decision: Introduce SwiftPM package with Linux-safe Combine shim and SwiftUI guards so unit tests compile in non-Apple environments.
   Rationale: Enables CI/test execution in this container while preserving app code for iOS builds.
   Date/Author: 2025-11-30 / agent
+- Decision: Preserve menu assignments that remain within the new date range when rebuilding PlanDays, dropping only out-of-range slots.
+  Rationale: Aligns with user expectation that changing the window should not delete still-relevant selections.
+  Date/Author: 2025-11-30 / agent
 
 ## Outcomes & Retrospective
 
@@ -46,6 +52,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Added a regression test for date-range shrinking to ensure plan days rebuild cleanly and previous assignments are cleared when outside the new window. Still blocked on manual simulator walkthrough for UI verification.
 - Added MenuStore coverage for filtering and validation to mirror expected picker behavior; remain unable to validate gestures or layout without a simulator.
 - Added PlanStore coverage that proves aggregation skips invalid ingredients and zero/negative quantities, reinforcing data hygiene in the absence of UI validation.
+- Adjusted PlanStore date-range rebuild to keep in-range assignments and documented the prior data-loss hazard; regression test now guards this flow.
 
 ## Context and Orientation
 

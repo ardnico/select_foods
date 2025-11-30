@@ -30,7 +30,7 @@ final class AggregationTests: XCTestCase {
         XCTAssertEqual(soyTotal?.totalQuantity, 40)
     }
 
-    func testUpdateRebuildsPlanDaysAndDropsOutOfRangeAssignments() {
+    func testUpdatePreservesInRangeAssignmentsAndDropsOutliers() {
         let calendar = Calendar(identifier: .gregorian)
         let start = calendar.date(from: DateComponents(year: 2025, month: 1, day: 1))!
         let end = calendar.date(byAdding: .day, value: 6, to: start)!
@@ -43,13 +43,24 @@ final class AggregationTests: XCTestCase {
         store.update(dateRange: start...end)
         XCTAssertEqual(store.plan.days.count, 7)
 
-        let menu = Menu.sampleMenus[0]
-        store.assign(menu: menu, to: start, slot: .lunch)
-        XCTAssertEqual(store.plan.days.first?.lunch?.id, menu.id)
+        let inRangeMenu = Menu.sampleMenus[0]
+        let outOfRangeMenu = Menu.sampleMenus[1]
+        let outOfRangeDate = calendar.date(byAdding: .day, value: 5, to: start)!
+
+        store.assign(menu: inRangeMenu, to: start, slot: .lunch)
+        store.assign(menu: outOfRangeMenu, to: outOfRangeDate, slot: .dinner)
+
+        XCTAssertEqual(store.plan.days.first?.lunch?.id, inRangeMenu.id)
+        XCTAssertEqual(store.plan.days.first(where: { $0.date == outOfRangeDate })?.dinner?.id, outOfRangeMenu.id)
 
         store.update(dateRange: start...shortenedEnd)
         XCTAssertEqual(store.plan.days.count, 3)
-        XCTAssertTrue(store.plan.days.allSatisfy { $0.lunch == nil && $0.dinner == nil })
+
+        let preservedDay = store.plan.days.first { Calendar.current.isDate($0.date, inSameDayAs: start) }
+        XCTAssertEqual(preservedDay?.lunch?.id, inRangeMenu.id)
+
+        let droppedDay = store.plan.days.first { Calendar.current.isDate($0.date, inSameDayAs: outOfRangeDate) }
+        XCTAssertNil(droppedDay?.dinner)
     }
 
     func testIngredientTotalsSkipInvalidEntries() {
