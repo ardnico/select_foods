@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(Combine)
 import Combine
+#endif
 
 public final class PlanStore: ObservableObject {
     @Published public private(set) var plan: Plan
@@ -40,6 +42,17 @@ public final class PlanStore: ObservableObject {
         planRepository.save(plan: plan)
     }
 
+    public func clearMenu(for date: Date, slot: MealSlot) {
+        guard let index = plan.days.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) else { return }
+        var day = plan.days[index]
+        switch slot {
+        case .lunch: day.lunch = nil
+        case .dinner: day.dinner = nil
+        }
+        plan.days[index] = day
+        planRepository.save(plan: plan)
+    }
+
     public func menusPublisher() -> AnyPublisher<[Menu], Never> {
         menuRepository.menus()
     }
@@ -57,6 +70,11 @@ public final class PlanStore: ObservableObject {
             }
         }
         return totals.map { IngredientTotal(ingredient: $0.key, totalQuantity: $0.value) }
-            .sorted { $0.ingredient.name < $1.ingredient.name }
+            .sorted {
+                if $0.ingredient.name == $1.ingredient.name {
+                    return $0.ingredient.unit < $1.ingredient.unit
+                }
+                return $0.ingredient.name < $1.ingredient.name
+            }
     }
 }

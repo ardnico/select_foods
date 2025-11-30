@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 struct MenuManagementView: View {
@@ -68,3 +69,4 @@ struct MenuManagementView: View {
         ingredients = []
     }
 }
+#endif
