@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(Combine)
 import Combine
+#endif
 
 public final class InMemoryPlanRepository: PlanRepository {
     private var plan: Plan
