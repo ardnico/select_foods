@@ -18,6 +18,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-11-30 09:05Z) Added SwiftPM packaging with Linux-friendly Combine shim/SwiftUI guards and executed `swift test` successfully.
 - [x] (2025-11-30 09:20Z) Added unit test covering date-range rebuild and reassignment reset when shrinking the planning window.
 - [x] (2025-11-30 09:35Z) Added MenuStore tests for filter behavior and menu validation to cover UI-critical flows without simulator access.
+- [x] (2025-11-30 09:50Z) Added PlanStore aggregation test to ensure invalid or zero-quantity ingredients are ignored when summing totals.
 - [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
@@ -44,6 +45,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Minimal validation is in place for menus and ingredients with offline-only repositories. `swift test` now passes in the Linux container using the Combine shim, confirming aggregation logic. Still need simulator run to confirm UI behavior and complete remaining acceptance steps.
 - Added a regression test for date-range shrinking to ensure plan days rebuild cleanly and previous assignments are cleared when outside the new window. Still blocked on manual simulator walkthrough for UI verification.
 - Added MenuStore coverage for filtering and validation to mirror expected picker behavior; remain unable to validate gestures or layout without a simulator.
+- Added PlanStore coverage that proves aggregation skips invalid ingredients and zero/negative quantities, reinforcing data hygiene in the absence of UI validation.
 
 ## Context and Orientation
 

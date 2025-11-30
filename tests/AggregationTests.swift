@@ -51,4 +51,30 @@ final class AggregationTests: XCTestCase {
         XCTAssertEqual(store.plan.days.count, 3)
         XCTAssertTrue(store.plan.days.allSatisfy { $0.lunch == nil && $0.dinner == nil })
     }
+
+    func testIngredientTotalsSkipInvalidEntries() {
+        let invalidIngredient = Ingredient(name: "   ", unit: " ml ")
+        let zeroQuantity = MenuIngredient(ingredient: Ingredient(name: "醤油", unit: "ml"), quantity: 0)
+        let negativeQuantity = MenuIngredient(ingredient: Ingredient(name: "キャベツ", unit: "g"), quantity: -1)
+        let validIngredient = MenuIngredient(ingredient: Ingredient(name: "キャベツ", unit: "g"), quantity: 100)
+
+        let menu = Menu(name: "テスト", type: .japanese, ingredients: [
+            MenuIngredient(ingredient: invalidIngredient, quantity: 10),
+            zeroQuantity,
+            negativeQuantity,
+            validIngredient
+        ])
+
+        let planRepo = InMemoryPlanRepository(startDate: Date(), endDate: Date())
+        let menuRepo = InMemoryMenuRepository(seed: [menu])
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        let today = Calendar.current.startOfDay(for: Date())
+        store.assign(menu: menu, to: today, slot: .lunch)
+
+        let totals = store.ingredientTotals()
+        XCTAssertEqual(totals.count, 1)
+        XCTAssertEqual(totals.first?.ingredient.name, "キャベツ")
+        XCTAssertEqual(totals.first?.totalQuantity, 100)
+    }
 }
