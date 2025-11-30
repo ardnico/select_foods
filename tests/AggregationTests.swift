@@ -29,4 +29,92 @@ final class AggregationTests: XCTestCase {
         XCTAssertEqual(chickenTotal?.totalQuantity, 450)
         XCTAssertEqual(soyTotal?.totalQuantity, 40)
     }
+
+    func testUpdatePreservesInRangeAssignmentsAndDropsOutliers() {
+        let calendar = Calendar(identifier: .gregorian)
+        let start = calendar.date(from: DateComponents(year: 2025, month: 1, day: 1))!
+        let end = calendar.date(byAdding: .day, value: 6, to: start)!
+        let shortenedEnd = calendar.date(byAdding: .day, value: 2, to: start)!
+
+        let planRepo = InMemoryPlanRepository(startDate: start, endDate: end)
+        let menuRepo = InMemoryMenuRepository()
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        store.update(dateRange: start...end)
+        XCTAssertEqual(store.plan.days.count, 7)
+
+        let inRangeMenu = Menu.sampleMenus[0]
+        let outOfRangeMenu = Menu.sampleMenus[1]
+        let outOfRangeDate = calendar.date(byAdding: .day, value: 5, to: start)!
+
+        store.assign(menu: inRangeMenu, to: start, slot: .lunch)
+        store.assign(menu: outOfRangeMenu, to: outOfRangeDate, slot: .dinner)
+
+        XCTAssertEqual(store.plan.days.first?.lunch?.id, inRangeMenu.id)
+        XCTAssertEqual(store.plan.days.first(where: { $0.date == outOfRangeDate })?.dinner?.id, outOfRangeMenu.id)
+
+        store.update(dateRange: start...shortenedEnd)
+        XCTAssertEqual(store.plan.days.count, 3)
+
+        let preservedDay = store.plan.days.first { Calendar.current.isDate($0.date, inSameDayAs: start) }
+        XCTAssertEqual(preservedDay?.lunch?.id, inRangeMenu.id)
+
+        let droppedDay = store.plan.days.first { Calendar.current.isDate($0.date, inSameDayAs: outOfRangeDate) }
+        XCTAssertNil(droppedDay?.dinner)
+    }
+
+    func testIngredientTotalsSkipInvalidEntries() {
+        let invalidIngredient = Ingredient(name: "   ", unit: " ml ")
+        let zeroQuantity = MenuIngredient(ingredient: Ingredient(name: "醤油", unit: "ml"), quantity: 0)
+        let negativeQuantity = MenuIngredient(ingredient: Ingredient(name: "キャベツ", unit: "g"), quantity: -1)
+        let validIngredient = MenuIngredient(ingredient: Ingredient(name: "キャベツ", unit: "g"), quantity: 100)
+
+        let menu = Menu(name: "テスト", type: .japanese, ingredients: [
+            MenuIngredient(ingredient: invalidIngredient, quantity: 10),
+            zeroQuantity,
+            negativeQuantity,
+            validIngredient
+        ])
+
+        let planRepo = InMemoryPlanRepository(startDate: Date(), endDate: Date())
+        let menuRepo = InMemoryMenuRepository(seed: [menu])
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        let today = Calendar.current.startOfDay(for: Date())
+        store.assign(menu: menu, to: today, slot: .lunch)
+
+        let totals = store.ingredientTotals()
+        XCTAssertEqual(totals.count, 1)
+        XCTAssertEqual(totals.first?.ingredient.name, "キャベツ")
+        XCTAssertEqual(totals.first?.totalQuantity, 100)
+    }
+
+    func testIngredientTotalsKeepUnitsSeparateAndOrdered() {
+        let saltGrams = MenuIngredient(ingredient: Ingredient(name: "塩", unit: "g"), quantity: 5)
+        let saltTeaspoon = MenuIngredient(ingredient: Ingredient(name: "塩", unit: "小さじ"), quantity: 1)
+        let soy = MenuIngredient(ingredient: Ingredient(name: "醤油", unit: "ml"), quantity: 10)
+        let menu = Menu(name: "味付けテスト", type: .japanese, ingredients: [saltGrams, saltTeaspoon, soy])
+
+        let planRepo = InMemoryPlanRepository(startDate: Date(), endDate: Date())
+        let menuRepo = InMemoryMenuRepository(seed: [menu])
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        let today = Calendar.current.startOfDay(for: Date())
+        store.assign(menu: menu, to: today, slot: .lunch)
+
+        let totals = store.ingredientTotals()
+        XCTAssertEqual(totals.count, 3)
+
+        XCTAssertEqual(totals[0].ingredient.name, "塩")
+        XCTAssertEqual(totals[0].ingredient.unit, "g")
+        XCTAssertEqual(totals[0].totalQuantity, 5)
+
+        XCTAssertEqual(totals[1].ingredient.name, "塩")
+        XCTAssertEqual(totals[1].ingredient.unit, "小さじ")
+        XCTAssertEqual(totals[1].totalQuantity, 1)
+
+        XCTAssertEqual(totals[2].ingredient.name, "醤油")
+        XCTAssertEqual(totals[2].ingredient.unit, "ml")
+        XCTAssertEqual(totals[2].totalQuantity, 10)
+    }
 }

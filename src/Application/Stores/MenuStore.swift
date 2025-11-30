@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(Combine)
 import Combine
+#endif
 
 public final class MenuStore: ObservableObject {
     @Published public private(set) var menus: [Menu] = []

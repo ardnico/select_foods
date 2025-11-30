@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(Combine)
 import Combine
+#endif
 
 public final class PlanStore: ObservableObject {
     @Published public private(set) var plan: Plan
@@ -57,6 +59,11 @@ public final class PlanStore: ObservableObject {
             }
         }
         return totals.map { IngredientTotal(ingredient: $0.key, totalQuantity: $0.value) }
-            .sorted { $0.ingredient.name < $1.ingredient.name }
+            .sorted {
+                if $0.ingredient.name == $1.ingredient.name {
+                    return $0.ingredient.unit < $1.ingredient.unit
+                }
+                return $0.ingredient.name < $1.ingredient.name
+            }
     }
 }

@@ -15,25 +15,51 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-01-06 02:20Z) Built PlanStore/MenuStore with date-range updates, menu assignment, filtering, and ingredient aggregation plus an initial aggregation unit test scaffold.
 - [x] (2025-01-06 02:45Z) Created SwiftUI views for period selection, daily plan slots, menu picker with filters, ingredient summary, and menu management wired to stores.
 - [x] (2025-01-06 03:10Z) Added minimal validation (trimmed names/units, positive quantities) and documented offline-only assumptions for simulator use.
-- [ ] Run unit tests and manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
+- [x] (2025-11-30 09:05Z) Added SwiftPM packaging with Linux-friendly Combine shim/SwiftUI guards and executed `swift test` successfully.
+- [x] (2025-11-30 09:20Z) Added unit test covering date-range rebuild and reassignment reset when shrinking the planning window.
+- [x] (2025-11-30 09:35Z) Added MenuStore tests for filter behavior and menu validation to cover UI-critical flows without simulator access.
+- [x] (2025-11-30 09:50Z) Added PlanStore aggregation test to ensure invalid or zero-quantity ingredients are ignored when summing totals.
+- [x] (2025-11-30 10:05Z) Fixed plan rebuild to preserve in-range assignments while dropping out-of-range ones and added regression test.
+- [x] (2025-11-30 10:20Z) Added deterministic ingredient ordering that keeps same-name ingredients with different units separate and covered the behavior with a regression test.
+- [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
 ## Surprises & Discoveries
 
 - Observation: Swift toolchain is unavailable in the Linux container, so compilation and previews cannot be exercised here.
-  Evidence: Will need simulator or macOS Xcode to run; tests are written but not executed in this environment.
+  Evidence: Will need simulator or macOS Xcode to run; tests were previously unexecuted in this environment.
+- Observation: Added a lightweight Combine shim and SwiftUI compile guards to allow `swift test` to run in Linux CI while keeping the iPad UI code for macOS/iOS builds.
+  Evidence: `swift test` now passes in the container with aggregation test succeeding (2025-11-30).
 - Observation: Validation now filters out empty ingredient names/units and non-positive quantities before persistence, so manual testing must include invalid input attempts on simulator.
   Evidence: MenuStore guards on `Menu.isValid` and `MenuIngredient.isValid` and ignores invalid saves.
+- Observation: Plan rebuild previously wiped all assignments on any date-range change, even those still in range; preserving in-range slots prevents accidental data loss when shrinking windows.
+  Evidence: Added regression test showing a shrink keeps assignments on overlapping days while dropping out-of-range ones (2025-11-30).
+- Observation: Ingredient totals were sorted only by name, which could reorder same-name items with different units unpredictably; tie-breaking by unit yields deterministic output for the summary view.
+  Evidence: Added ordering test that asserts separate salt entries (g, 小さじ) remain distinct and stable (2025-11-30).
 
 ## Decision Log
 
 - Decision: Use in-memory repositories first with a protocol boundary to swap in Core Data later.
   Rationale: Accelerates MVP without blocking on storage setup while aligning with PROJECT_PLAN.md offline requirement.
   Date/Author: 2025-01-06 / agent
+- Decision: Introduce SwiftPM package with Linux-safe Combine shim and SwiftUI guards so unit tests compile in non-Apple environments.
+  Rationale: Enables CI/test execution in this container while preserving app code for iOS builds.
+  Date/Author: 2025-11-30 / agent
+- Decision: Preserve menu assignments that remain within the new date range when rebuilding PlanDays, dropping only out-of-range slots.
+  Rationale: Aligns with user expectation that changing the window should not delete still-relevant selections.
+  Date/Author: 2025-11-30 / agent
+- Decision: Sort ingredient totals by name then unit to keep same-name ingredients with different units distinct and deterministic in summaries.
+  Rationale: Prevents unstable ordering when displaying or asserting against aggregated lists that include mixed units.
+  Date/Author: 2025-11-30 / agent
 
 ## Outcomes & Retrospective
 
-- Minimal validation is in place for menus and ingredients with offline-only repositories. Need simulator run to confirm UI behavior and complete remaining acceptance steps; aggregation unit tests remain unexecuted until Swift toolchain is available.
+- Minimal validation is in place for menus and ingredients with offline-only repositories. `swift test` now passes in the Linux container using the Combine shim, confirming aggregation logic. Still need simulator run to confirm UI behavior and complete remaining acceptance steps.
+- Added a regression test for date-range shrinking to ensure plan days rebuild cleanly and previous assignments are cleared when outside the new window. Still blocked on manual simulator walkthrough for UI verification.
+- Added MenuStore coverage for filtering and validation to mirror expected picker behavior; remain unable to validate gestures or layout without a simulator.
+- Added PlanStore coverage that proves aggregation skips invalid ingredients and zero/negative quantities, reinforcing data hygiene in the absence of UI validation.
+- Adjusted PlanStore date-range rebuild to keep in-range assignments and documented the prior data-loss hazard; regression test now guards this flow.
+- Added deterministic ordering for ingredient totals that keeps mixed-unit entries separate and documented the stability requirement for summary displays.
 
 ## Context and Orientation
 
@@ -125,3 +151,4 @@ Run commands from repository root unless stated.
 Note: Update this plan with actual implementations, evidence, and retrospective entries as work proceeds.
 
 Revision note (2025-01-06): Updated progress, added implemented SwiftUI/domain/repository details, and documented environment limitation (no Swift toolchain) while leaving remaining validation tasks open.
+Revision note (2025-11-30): Captured deterministic ingredient ordering decision and accompanying regression test in Progress, Surprises & Discoveries, Decision Log, and Outcomes.
