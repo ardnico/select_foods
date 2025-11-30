@@ -33,7 +33,10 @@ public final class MenuStore: ObservableObject {
     }
 
     public func addMenu(name: String, type: MenuType, ingredients: [MenuIngredient]) {
-        let menu = Menu(name: name, type: type, ingredients: ingredients)
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let validIngredients = ingredients.filter { $0.isValid }
+        let menu = Menu(name: trimmedName, type: type, ingredients: validIngredients)
+        guard menu.isValid else { return }
         repository.add(menu: menu)
     }
 }

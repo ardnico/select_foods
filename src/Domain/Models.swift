@@ -22,6 +22,10 @@ public struct MenuIngredient: Codable, Hashable {
         self.ingredient = ingredient
         self.quantity = quantity
     }
+
+    public var isValid: Bool {
+        ingredient.isValid && quantity > 0
+    }
 }
 
 public enum MenuType: Codable, Hashable, CaseIterable {
@@ -110,8 +114,10 @@ public struct Menu: Codable, Hashable, Identifiable {
     }
 
     public var isValid: Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        ingredients.allSatisfy { $0.ingredient.isValid }
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmedName.isEmpty &&
+        !ingredients.isEmpty &&
+        ingredients.allSatisfy { $0.isValid }
     }
 
     public static var sampleMenus: [Menu] {

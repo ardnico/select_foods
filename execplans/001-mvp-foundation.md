@@ -14,7 +14,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-01-06 02:00Z) Added in-memory Plan/Menu repositories with seed data and type sets, exposing Combine publishers.
 - [x] (2025-01-06 02:20Z) Built PlanStore/MenuStore with date-range updates, menu assignment, filtering, and ingredient aggregation plus an initial aggregation unit test scaffold.
 - [x] (2025-01-06 02:45Z) Created SwiftUI views for period selection, daily plan slots, menu picker with filters, ingredient summary, and menu management wired to stores.
-- [ ] Add minimal validation (non-empty ingredient names/units) and offline assumptions; ensure usability on iPadOS 17 simulator.
+- [x] (2025-01-06 03:10Z) Added minimal validation (trimmed names/units, positive quantities) and documented offline-only assumptions for simulator use.
 - [ ] Run unit tests and manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
@@ -22,6 +22,8 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 
 - Observation: Swift toolchain is unavailable in the Linux container, so compilation and previews cannot be exercised here.
   Evidence: Will need simulator or macOS Xcode to run; tests are written but not executed in this environment.
+- Observation: Validation now filters out empty ingredient names/units and non-positive quantities before persistence, so manual testing must include invalid input attempts on simulator.
+  Evidence: MenuStore guards on `Menu.isValid` and `MenuIngredient.isValid` and ignores invalid saves.
 
 ## Decision Log
 
@@ -31,7 +33,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 
 ## Outcomes & Retrospective
 
-- Pending completion of validation on macOS/iPadOS. Current code provides in-memory data, domain models, stores, SwiftUI screens, and an aggregation unit test scaffold.
+- Minimal validation is in place for menus and ingredients with offline-only repositories. Need simulator run to confirm UI behavior and complete remaining acceptance steps; aggregation unit tests remain unexecuted until Swift toolchain is available.
 
 ## Context and Orientation
 
@@ -48,6 +50,7 @@ Critical behaviors:
 - Menus can be filtered by type and type sets when picking (M3, M4).
 - Aggregation sums ingredients by (name, unit) across the selected period (M5).
 - Views show the period schedule and ingredient list (M6), plus a simple menu manager with seed data (M7).
+- Offline assumption: all data is local/in-memory; no network calls occur. Simulator/iPad should be set to iPadOS 17 with persistence limited to the session.
 
 ## Plan of Work
 

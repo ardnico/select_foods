@@ -49,7 +49,7 @@ public final class PlanStore: ObservableObject {
         for day in plan.days {
             let menus = [day.lunch, day.dinner].compactMap { $0 }
             for menu in menus {
-                for item in menu.ingredients where item.ingredient.isValid {
+                for item in menu.ingredients where item.isValid {
                     let current = totals[item.ingredient, default: 0]
                     let updated = current + max(0, item.quantity)
                     totals[item.ingredient] = updated

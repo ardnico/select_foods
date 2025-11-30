@@ -54,7 +54,7 @@ struct MenuManagementView: View {
     private func addIngredient() {
         let trimmedName = ingredientName.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedUnit = ingredientUnit.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty, !trimmedUnit.isEmpty, let quantity = Double(ingredientQuantity) else { return }
+        guard !trimmedName.isEmpty, !trimmedUnit.isEmpty, let quantity = Double(ingredientQuantity), quantity > 0 else { return }
         let ingredient = Ingredient(name: trimmedName, unit: trimmedUnit)
         ingredients.append(MenuIngredient(ingredient: ingredient, quantity: quantity))
         ingredientName = ""
