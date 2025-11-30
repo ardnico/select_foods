@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 struct PlanListView: View {
@@ -46,3 +47,4 @@ private struct MenuSlotView: View {
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 public struct ContentView: View {
@@ -57,3 +58,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(menuRepository: menuRepo, planRepository: planRepo)
     }
 }
+#endif

@@ -15,13 +15,18 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-01-06 02:20Z) Built PlanStore/MenuStore with date-range updates, menu assignment, filtering, and ingredient aggregation plus an initial aggregation unit test scaffold.
 - [x] (2025-01-06 02:45Z) Created SwiftUI views for period selection, daily plan slots, menu picker with filters, ingredient summary, and menu management wired to stores.
 - [x] (2025-01-06 03:10Z) Added minimal validation (trimmed names/units, positive quantities) and documented offline-only assumptions for simulator use.
-- [ ] Run unit tests and manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
+- [x] (2025-11-30 09:05Z) Added SwiftPM packaging with Linux-friendly Combine shim/SwiftUI guards and executed `swift test` successfully.
+- [x] (2025-11-30 09:20Z) Added unit test covering date-range rebuild and reassignment reset when shrinking the planning window.
+- [x] (2025-11-30 09:35Z) Added MenuStore tests for filter behavior and menu validation to cover UI-critical flows without simulator access.
+- [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
 ## Surprises & Discoveries
 
 - Observation: Swift toolchain is unavailable in the Linux container, so compilation and previews cannot be exercised here.
-  Evidence: Will need simulator or macOS Xcode to run; tests are written but not executed in this environment.
+  Evidence: Will need simulator or macOS Xcode to run; tests were previously unexecuted in this environment.
+- Observation: Added a lightweight Combine shim and SwiftUI compile guards to allow `swift test` to run in Linux CI while keeping the iPad UI code for macOS/iOS builds.
+  Evidence: `swift test` now passes in the container with aggregation test succeeding (2025-11-30).
 - Observation: Validation now filters out empty ingredient names/units and non-positive quantities before persistence, so manual testing must include invalid input attempts on simulator.
   Evidence: MenuStore guards on `Menu.isValid` and `MenuIngredient.isValid` and ignores invalid saves.
 
@@ -30,10 +35,15 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Decision: Use in-memory repositories first with a protocol boundary to swap in Core Data later.
   Rationale: Accelerates MVP without blocking on storage setup while aligning with PROJECT_PLAN.md offline requirement.
   Date/Author: 2025-01-06 / agent
+- Decision: Introduce SwiftPM package with Linux-safe Combine shim and SwiftUI guards so unit tests compile in non-Apple environments.
+  Rationale: Enables CI/test execution in this container while preserving app code for iOS builds.
+  Date/Author: 2025-11-30 / agent
 
 ## Outcomes & Retrospective
 
-- Minimal validation is in place for menus and ingredients with offline-only repositories. Need simulator run to confirm UI behavior and complete remaining acceptance steps; aggregation unit tests remain unexecuted until Swift toolchain is available.
+- Minimal validation is in place for menus and ingredients with offline-only repositories. `swift test` now passes in the Linux container using the Combine shim, confirming aggregation logic. Still need simulator run to confirm UI behavior and complete remaining acceptance steps.
+- Added a regression test for date-range shrinking to ensure plan days rebuild cleanly and previous assignments are cleared when outside the new window. Still blocked on manual simulator walkthrough for UI verification.
+- Added MenuStore coverage for filtering and validation to mirror expected picker behavior; remain unable to validate gestures or layout without a simulator.
 
 ## Context and Orientation
 
