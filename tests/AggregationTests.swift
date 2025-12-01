@@ -63,6 +63,35 @@ final class AggregationTests: XCTestCase {
         XCTAssertNil(droppedDay?.dinner)
     }
 
+    func testUpdateExpandsRangeAndKeepsExistingAssignments() {
+        let calendar = Calendar(identifier: .gregorian)
+        let start = calendar.date(from: DateComponents(year: 2025, month: 2, day: 1))!
+        let end = calendar.date(byAdding: .day, value: 2, to: start)!
+        let extendedEnd = calendar.date(byAdding: .day, value: 6, to: start)!
+
+        let planRepo = InMemoryPlanRepository(startDate: start, endDate: end)
+        let menuRepo = InMemoryMenuRepository()
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        store.update(dateRange: start...end)
+        XCTAssertEqual(store.plan.days.count, 3)
+
+        let assignedMenu = Menu.sampleMenus[2]
+        let midDate = calendar.date(byAdding: .day, value: 1, to: start)!
+        store.assign(menu: assignedMenu, to: midDate, slot: .dinner)
+
+        store.update(dateRange: start...extendedEnd)
+
+        XCTAssertEqual(store.plan.days.count, 7)
+
+        let preservedDay = store.plan.days.first { Calendar.current.isDate($0.date, inSameDayAs: midDate) }
+        XCTAssertEqual(preservedDay?.dinner?.id, assignedMenu.id)
+
+        let newLastDay = store.plan.days.first { Calendar.current.isDate($0.date, inSameDayAs: extendedEnd) }
+        XCTAssertNil(newLastDay?.lunch)
+        XCTAssertNil(newLastDay?.dinner)
+    }
+
     func testIngredientTotalsSkipInvalidEntries() {
         let invalidIngredient = Ingredient(name: "   ", unit: " ml ")
         let zeroQuantity = MenuIngredient(ingredient: Ingredient(name: "醤油", unit: "ml"), quantity: 0)

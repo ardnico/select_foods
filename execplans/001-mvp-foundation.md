@@ -23,6 +23,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-11-30 10:20Z) Added deterministic ingredient ordering that keeps same-name ingredients with different units separate and covered the behavior with a regression test.
 - [x] (2025-11-30 10:35Z) Added menu-slot clearing from the picker, dismissed the picker after selection, and covered clearing with a regression test.
 - [x] (2025-12-01 12:55Z) Fixed picker filters so the UI defaults to "all" and type-set buttons can toggle selection state predictably.
+- [x] (2025-12-02 09:10Z) Added regression coverage that expanding the date range preserves existing assignments and initializes new days empty.
 - [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
@@ -40,6 +41,8 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
   Evidence: Added ordering test that asserts separate salt entries (g, 小さじ) remain distinct and stable (2025-11-30).
 - Observation: The picker showed the first menu type as selected even while the filter logic was disabled, making it unclear that "all" menus were visible and preventing deselection of a type set.
   Evidence: Default segmented binding returned the first type when `selectedType` was nil and type-set buttons lacked toggle behavior; corrected to align UI state with actual filters (2025-12-01).
+- Observation: Plan rebuild on range expansion kept prior assignments intact and created new days with empty slots.
+  Evidence: Added regression test ensuring mid-range assignments survive when extending to a longer window (2025-12-02).
 
 ## Decision Log
 
@@ -71,6 +74,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Adjusted PlanStore date-range rebuild to keep in-range assignments and documented the prior data-loss hazard; regression test now guards this flow.
 - Added deterministic ordering for ingredient totals that keeps mixed-unit entries separate and documented the stability requirement for summary displays.
 - Corrected picker filter UI to match actual filtering defaults and allow toggling of type sets so users can explicitly return to an unfiltered view.
+- Added coverage proving date-range expansion preserves existing assignments while initializing new days empty, reducing risk when extending plans.
 
 ## Context and Orientation
 
