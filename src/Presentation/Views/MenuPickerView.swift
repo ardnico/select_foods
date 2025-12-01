@@ -17,7 +17,7 @@ struct MenuPickerView: View {
                         .buttonStyle(.bordered)
                 }
 
-                Picker("タイプ", selection: Binding(get: { selectedType ?? menuStore.menuTypes.first }, set: { selectedType = $0 })) {
+                Picker("タイプ", selection: Binding(get: { selectedType }, set: { selectedType = $0 })) {
                     Text("すべて").tag(MenuType?.none)
                     ForEach(menuStore.menuTypes, id: \._self) { type in
                         Text(type.displayName).tag(MenuType?.some(type))
@@ -30,11 +30,19 @@ struct MenuPickerView: View {
                         Button(action: { selectedTypeSet = nil }) {
                             Text("全セット")
                         }
+                        .buttonStyle(selectedTypeSet == nil ? .borderedProminent : .bordered)
+
                         ForEach(menuStore.menuTypeSets) { typeSet in
-                            Button(action: { selectedTypeSet = typeSet }) {
+                            Button(action: {
+                                if selectedTypeSet?.id == typeSet.id {
+                                    selectedTypeSet = nil
+                                } else {
+                                    selectedTypeSet = typeSet
+                                }
+                            }) {
                                 Text(typeSet.name)
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(selectedTypeSet?.id == typeSet.id ? .borderedProminent : .bordered)
                         }
                     }
                 }

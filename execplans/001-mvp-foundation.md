@@ -22,6 +22,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-11-30 10:05Z) Fixed plan rebuild to preserve in-range assignments while dropping out-of-range ones and added regression test.
 - [x] (2025-11-30 10:20Z) Added deterministic ingredient ordering that keeps same-name ingredients with different units separate and covered the behavior with a regression test.
 - [x] (2025-11-30 10:35Z) Added menu-slot clearing from the picker, dismissed the picker after selection, and covered clearing with a regression test.
+- [x] (2025-12-01 12:55Z) Fixed picker filters so the UI defaults to "all" and type-set buttons can toggle selection state predictably.
 - [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
@@ -37,6 +38,8 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
   Evidence: Added regression test showing a shrink keeps assignments on overlapping days while dropping out-of-range ones (2025-11-30).
 - Observation: Ingredient totals were sorted only by name, which could reorder same-name items with different units unpredictably; tie-breaking by unit yields deterministic output for the summary view.
   Evidence: Added ordering test that asserts separate salt entries (g, 小さじ) remain distinct and stable (2025-11-30).
+- Observation: The picker showed the first menu type as selected even while the filter logic was disabled, making it unclear that "all" menus were visible and preventing deselection of a type set.
+  Evidence: Default segmented binding returned the first type when `selectedType` was nil and type-set buttons lacked toggle behavior; corrected to align UI state with actual filters (2025-12-01).
 
 ## Decision Log
 
@@ -55,6 +58,9 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Decision: Allow clearing an assigned menu slot directly from the picker and auto-dismiss the sheet after any choice.
   Rationale: Users need an escape hatch to unset mistaken assignments without extra taps, and selections should immediately close the picker to confirm the change.
   Date/Author: 2025-11-30 / agent
+- Decision: Keep picker filters honest by defaulting to "all" and making type-set chips toggles instead of one-way selections.
+  Rationale: Users should see the unfiltered list by default and must be able to deselect a set without resorting to an external reset control.
+  Date/Author: 2025-12-01 / agent
 
 ## Outcomes & Retrospective
 
@@ -64,6 +70,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - Added PlanStore coverage that proves aggregation skips invalid ingredients and zero/negative quantities, reinforcing data hygiene in the absence of UI validation.
 - Adjusted PlanStore date-range rebuild to keep in-range assignments and documented the prior data-loss hazard; regression test now guards this flow.
 - Added deterministic ordering for ingredient totals that keeps mixed-unit entries separate and documented the stability requirement for summary displays.
+- Corrected picker filter UI to match actual filtering defaults and allow toggling of type sets so users can explicitly return to an unfiltered view.
 
 ## Context and Orientation
 
