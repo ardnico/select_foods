@@ -6,10 +6,17 @@ struct MenuPickerView: View {
     @State private var selectedType: MenuType? = nil
     @State private var selectedTypeSet: MenuTypeSet? = nil
     var onSelect: (Menu) -> Void
+    var onClear: () -> Void
 
     var body: some View {
         NavigationStack {
             VStack {
+                HStack {
+                    Spacer()
+                    Button("未設定にする", action: onClear)
+                        .buttonStyle(.bordered)
+                }
+
                 Picker("タイプ", selection: Binding(get: { selectedType ?? menuStore.menuTypes.first }, set: { selectedType = $0 })) {
                     Text("すべて").tag(MenuType?.none)
                     ForEach(menuStore.menuTypes, id: \._self) { type in

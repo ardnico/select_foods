@@ -42,6 +42,17 @@ public final class PlanStore: ObservableObject {
         planRepository.save(plan: plan)
     }
 
+    public func clearMenu(for date: Date, slot: MealSlot) {
+        guard let index = plan.days.firstIndex(where: { Calendar.current.isDate($0.date, inSameDayAs: date) }) else { return }
+        var day = plan.days[index]
+        switch slot {
+        case .lunch: day.lunch = nil
+        case .dinner: day.dinner = nil
+        }
+        plan.days[index] = day
+        planRepository.save(plan: plan)
+    }
+
     public func menusPublisher() -> AnyPublisher<[Menu], Never> {
         menuRepository.menus()
     }

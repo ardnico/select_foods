@@ -21,6 +21,7 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
 - [x] (2025-11-30 09:50Z) Added PlanStore aggregation test to ensure invalid or zero-quantity ingredients are ignored when summing totals.
 - [x] (2025-11-30 10:05Z) Fixed plan rebuild to preserve in-range assignments while dropping out-of-range ones and added regression test.
 - [x] (2025-11-30 10:20Z) Added deterministic ingredient ordering that keeps same-name ingredients with different units separate and covered the behavior with a regression test.
+- [x] (2025-11-30 10:35Z) Added menu-slot clearing from the picker, dismissed the picker after selection, and covered clearing with a regression test.
 - [ ] Manual walkthrough verifying period change, menu assignment, filtering, and ingredient aggregation.
 - [ ] Update Outcomes & Retrospective with learnings and finalize plan.
 
@@ -50,6 +51,9 @@ Enable an offline-first iPad meal-planning app that lets a user set a date range
   Date/Author: 2025-11-30 / agent
 - Decision: Sort ingredient totals by name then unit to keep same-name ingredients with different units distinct and deterministic in summaries.
   Rationale: Prevents unstable ordering when displaying or asserting against aggregated lists that include mixed units.
+  Date/Author: 2025-11-30 / agent
+- Decision: Allow clearing an assigned menu slot directly from the picker and auto-dismiss the sheet after any choice.
+  Rationale: Users need an escape hatch to unset mistaken assignments without extra taps, and selections should immediately close the picker to confirm the change.
   Date/Author: 2025-11-30 / agent
 
 ## Outcomes & Retrospective

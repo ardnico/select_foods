@@ -117,4 +117,24 @@ final class AggregationTests: XCTestCase {
         XCTAssertEqual(totals[2].ingredient.unit, "ml")
         XCTAssertEqual(totals[2].totalQuantity, 10)
     }
+
+    func testClearMenuRemovesAssignmentAndTotals() {
+        let rice = MenuIngredient(ingredient: Ingredient(name: "ご飯", unit: "杯"), quantity: 2)
+        let menu = Menu(name: "ご飯セット", type: .japanese, ingredients: [rice])
+
+        let planRepo = InMemoryPlanRepository(startDate: Date(), endDate: Date())
+        let menuRepo = InMemoryMenuRepository(seed: [menu])
+        let store = PlanStore(planRepository: planRepo, menuRepository: menuRepo)
+
+        let today = Calendar.current.startOfDay(for: Date())
+        store.assign(menu: menu, to: today, slot: .lunch)
+
+        XCTAssertEqual(store.plan.days.first?.lunch?.id, menu.id)
+        XCTAssertEqual(store.ingredientTotals().count, 1)
+
+        store.clearMenu(for: today, slot: .lunch)
+
+        XCTAssertNil(store.plan.days.first?.lunch)
+        XCTAssertTrue(store.ingredientTotals().isEmpty)
+    }
 }
