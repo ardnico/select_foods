@@ -1,3 +1,4 @@
+#if canImport(SwiftUI)
 import SwiftUI
 
 public struct ContentView: View {
@@ -36,6 +37,11 @@ public struct ContentView: View {
                         menuStore: menuStore,
                         onSelect: { menu in
                             planStore.assign(menu: menu, to: selectedDay.date, slot: selectedSlot)
+                            showingPicker = false
+                        },
+                        onClear: {
+                            planStore.clearMenu(for: selectedDay.date, slot: selectedSlot)
+                            showingPicker = false
                         }
                     )
                 }
@@ -57,3 +63,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView(menuRepository: menuRepo, planRepository: planRepo)
     }
 }
+#endif

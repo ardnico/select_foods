@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(Combine)
 import Combine
+#endif
 
 public protocol PlanRepository {
     func loadPlan(startDate: Date, endDate: Date) -> AnyPublisher<Plan, Never>
