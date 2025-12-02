@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Import Swift release signing keys
+        run: curl -fsSL https://download.swift.org/keys/all-keys.asc | gpg --import -
+
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v1
+        with:
+          swift-version: '5.9'
+
+      - name: Build and test
+        run: swift test --enable-test-discovery
+
+  release-artifacts:
+    runs-on: ubuntu-22.04
+    needs: build-and-test
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Import Swift release signing keys
+        run: curl -fsSL https://download.swift.org/keys/all-keys.asc | gpg --import -
+
+      - name: Set up Swift
+        uses: swift-actions/setup-swift@v1
+        with:
+          swift-version: '5.9'
+
+      - name: Build release artifacts
+        run: |
+          swift build -c release
+          tar czf select_foods-artifacts.tar.gz -C .build release
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: select_foods-artifacts.tar.gz
+          asset_name: select_foods-${{ github.ref_name }}-artifacts.tar.gz
+          asset_content_type: application/gzip
