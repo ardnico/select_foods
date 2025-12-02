@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Import Swift release signing keys
-        run: curl -fsSL https://download.swift.org/keys/all-keys.asc | gpg --import -
+        run: curl -fsSL https://swift.org/keys/all-keys.asc | gpg --import -
 
       - name: Set up Swift
         uses: swift-actions/setup-swift@v1
@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Import Swift release signing keys
-        run: curl -fsSL https://download.swift.org/keys/all-keys.asc | gpg --import -
+        run: curl -fsSL https://swift.org/keys/all-keys.asc | gpg --import -
 
       - name: Set up Swift
         uses: swift-actions/setup-swift@v1
