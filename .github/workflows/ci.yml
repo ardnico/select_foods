@@ -18,11 +18,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Import Swift release signing keys
+        run: curl -fsSL https://download.swift.org/keys/all-keys.asc | gpg --import -
+
       - name: Set up Swift
         uses: swift-actions/setup-swift@v1
         with:
           swift-version: '5.9'
-          gpg-keys: https://download.swift.org/keys/all-keys.asc
 
       - name: Build and test
         run: swift test --enable-test-discovery
@@ -35,11 +37,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Import Swift release signing keys
+        run: curl -fsSL https://download.swift.org/keys/all-keys.asc | gpg --import -
+
       - name: Set up Swift
         uses: swift-actions/setup-swift@v1
         with:
           swift-version: '5.9'
-          gpg-keys: https://download.swift.org/keys/all-keys.asc
 
       - name: Build release artifacts
         run: |
